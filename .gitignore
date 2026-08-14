@@ -1,2 +1,7 @@
 # personal use folders and files for development
 ignorable
+
+# for IOS
+.DS_Store
+
+__pycache__
