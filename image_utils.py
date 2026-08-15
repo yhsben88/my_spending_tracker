@@ -33,6 +33,19 @@ def save_image_to(source_path: Path, save_folder: str,image):
     
     return save_path
 
+def crop_image_bottom_half(image):
+    height, width = image.shape[:2]
+    bottom_half = image[height // 2:, :]
+    return bottom_half
+
+def upscale_image(image, scale=3):
+    return cv2.resize(
+        image,
+        None,
+        fx=scale,
+        fy=scale,
+        interpolation=cv2.INTER_CUBIC
+    )
 
 def preprocess(image, path: Path) :
     if image is None:
@@ -60,9 +73,6 @@ def preprocess(image, path: Path) :
             255,
             cv2.THRESH_BINARY + cv2.THRESH_OTSU # otsu method separates foreground from background.
         )
-
-        # save threshold image
-        save_image_to(path, "./ignorable/training-data/", threshold)
         
     except cv2.error as e:
         raise RuntimeError("Failed to preprocess image") from e

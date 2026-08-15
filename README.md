@@ -22,6 +22,7 @@ Using the correct reference point for our receipt total,
 
 - Instead of machine learning our way into finding relevent positions for receipt totals. A simple heuristic evaluation became the idea to my answer for robustness.
 - Receipts tend to put the final amount near the bottom, so among relevant labels, prefer the last one detected.
+- The zoomed OCR has higher confidence and produced a more complete monetary expression.
 
 ## UI/UX
 

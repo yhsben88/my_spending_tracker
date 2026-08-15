@@ -10,6 +10,9 @@ from bbox_utils import find_word_total
 from bbox_utils import find_relevent_bbox
 from bbox_utils import visualize_receipt
 from image_utils import save_image_to
+from bbox_utils import crop_total_region
+from image_utils import upscale_image
+from bbox_utils import transform_bbox_for_crop_and_scale
 
 from pathlib import Path
 
@@ -28,12 +31,35 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[:10]:
         receipt_data = reader.readtext(preprocessed_receipt)
 
         total_word_bbox, total_word, total_confidence = find_word_total(receipt_data)
-        ''' testing '''
-        print(f"type of confidence: {type(total_confidence)}\n")
-        ''' end of test'''
-        value_score, value_bbox, value_text, value_confidence = find_relevent_bbox(total_word_bbox, receipt_data)
 
-        print(f"{current_image}\n score: {value_score}\n text: {value_text}\n confidence: {value_confidence}\n")
+        total_region, crop_y1 = crop_total_region(
+            preprocessed_receipt,
+            total_word_bbox
+        )
+
+        scale = 3
+
+        total_region = upscale_image(
+            total_region,
+            scale
+        )
+
+        total_region_data = reader.readtext(
+            total_region
+        )
+
+        zoomed_total_bbox = transform_bbox_for_crop_and_scale(
+            total_word_bbox,
+            crop_y1,
+            scale
+        )
+
+        value_score, value_bbox, value_text, value_confidence = find_relevent_bbox(
+            zoomed_total_bbox,
+            total_region_data
+        )
+
+        print(f"{current_image}\n score: {value_score}\n Anchor word: {total_word}\nvalue: {value_text}\n confidence: {value_confidence}\n")
 
         if DEV_MODE :
             debug_image = visualize_receipt(
@@ -45,7 +71,19 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[:10]:
                 value_text,
                 debug=True
             )
-            save_image_to(image_path, "./ignorable/processed-images/dev", debug_image)
+            save_image_to(image_path, "./ignorable/processed-images/dev/full", debug_image)
+
+            debug_image_cropped = visualize_receipt(
+                            total_region,
+                            total_region_data,
+                            zoomed_total_bbox,
+                            total_word,
+                            value_bbox,
+                            value_text,
+                            debug=True,
+                            show_text= False
+                        )
+            save_image_to(image_path, "./ignorable/processed-images/dev/cropped", debug_image_cropped)
             
 
         user_image = visualize_receipt(

@@ -5,6 +5,7 @@ Authored by: Hiu Sum Yuen
 
 import cv2
 import numpy as np
+from monetary_check_utils import extract_money
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -35,7 +36,7 @@ def find_word_total(reader_list: list):
             total_text = text
             best_confidence = confidence
     if total_bbox is None:
-        raise ValueError("Cannot find any relevant words for Total.")
+        raise ValueError("Cannot find any relevent words for Total.")
     return total_bbox, total_text, best_confidence
 
 def bbox_bounds(bbox):
@@ -49,6 +50,10 @@ def get_bbox_center(bbox):
     y = sum(point[1] for point in bbox) / 4
     return x, y
 
+def point_is_inside_bbox(x, y, bbox):
+    x1, y1, x2, y2 = bbox_bounds(bbox)
+
+    return x1 <= x <= x2 and y1 <= y <= y2
 
 '''
 Scoring:
@@ -70,6 +75,11 @@ def find_relevent_bbox(ref_bbox, reader_list) :
     top_bbox = None
 
     for bbox, text, confidence in reader_list:
+        # Reference bbox itself may contain the value
+        if point_is_inside_bbox(ref_x_center, ref_y_center, bbox):
+            if (t := extract_money(text)) is not None:
+                return 20, bbox, t, confidence
+            
         x1, y1, x2, y2 = bbox_bounds(bbox)
         score = -1
 
@@ -90,6 +100,10 @@ def find_relevent_bbox(ref_bbox, reader_list) :
         # if Candidate has no overlap and is at the bottom right of reference
         elif y1 >= ref_y2 and x1 >= ref_x2: 
             pass
+
+        # Prefer candidates with numeric-looking text
+        if any(char.isdigit() for char in text):
+            score += 4
 
         if score > top_score:
             top_score = score
@@ -169,3 +183,31 @@ def visualize_receipt(
         )
 
     return output
+
+def crop_total_region(image, total_bbox):
+    ys = [point[1] for point in total_bbox]
+
+    y1 = min(ys)
+    y2 = max(ys)
+
+    height = image.shape[0]
+
+    y_padding = abs(y2 - y1) * 2
+
+    crop_y1 = max(0, y1 - y_padding)
+    crop_y2 = min(height, y2 + y_padding)
+
+    cropped = image[crop_y1:crop_y2, :]
+
+    return cropped, crop_y1
+
+def transform_bbox_for_crop_and_scale(bbox,vertical_displacement,scale=3):
+    transformed_bbox = []
+
+    for x, y in bbox:
+        new_x = x * scale
+        new_y = (y - vertical_displacement) * scale
+
+        transformed_bbox.append([new_x, new_y])
+
+    return transformed_bbox
