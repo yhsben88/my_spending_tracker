@@ -33,10 +33,6 @@ def save_image_to(source_path: Path, save_folder: str,image):
     
     return save_path
 
-def crop_image_bottom_half(image):
-    height, width = image.shape[:2]
-    bottom_half = image[height // 2:, :]
-    return bottom_half
 
 def upscale_image(image, scale=3):
     return cv2.resize(

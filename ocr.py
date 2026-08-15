@@ -4,19 +4,17 @@ Authored by: Hiu Sum Yuen
 """
 
 import easyocr
-from image_utils import load_image
-from image_utils import preprocess
-from bbox_utils import find_word_total
-from bbox_utils import find_relevent_bbox
-from bbox_utils import visualize_receipt
-from image_utils import save_image_to
-from bbox_utils import crop_total_region
-from image_utils import upscale_image
-from bbox_utils import transform_bbox_for_crop_and_scale
+from image_utils import load_image , preprocess , upscale_image , save_image_to
+from find_word_total import find_word_total
+from find_relevent_bbox import find_relevent_bbox
+from visualize_receipt import visualize_receipt
+from crop_image import crop_total_region , transform_bbox_for_crop_and_scale
+
+
 
 from pathlib import Path
 
-starting_image = 0
+starting_image = 154
 current_image = 1000 + starting_image
 poorly_scanned = []
 DEV_MODE = True
@@ -24,7 +22,7 @@ DEV_MODE = True
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+199]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+1]:
     try:
 
         receipt = load_image(image_path)
