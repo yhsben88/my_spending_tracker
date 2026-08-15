@@ -8,6 +8,7 @@ import numpy as np
 from monetary_check_utils import extract_money
 from monetary_check_utils import normalize_keyword
 from fuzzy_search import fuzzy_search
+from fuzzy_search import is_subtotal
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -28,6 +29,10 @@ def find_word_total(reader_list: list):
         text_lower = normalize_keyword(text_lower)
 
         score = -1 # if final score is -1, the algorithm didn't get any text that match the dictionary.
+
+        # Any variation of subtotal, we'd rather perform fuzzy search than take take a subtotal of any variation.
+        if is_subtotal(text_lower):
+            continue
 
         for keyword, keyword_score in keyword_scores.items():
             if " " in keyword:

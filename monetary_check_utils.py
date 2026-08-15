@@ -26,7 +26,7 @@ def normalize_keyword(text):
         "(": "l",
     }
 
-    text = text.lower()
+    text = text.lower().strip()
 
     for old, new in replacements.items():
         text = text.replace(old, new)
