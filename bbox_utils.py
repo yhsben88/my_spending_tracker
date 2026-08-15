@@ -216,7 +216,7 @@ def crop_total_region(image, total_bbox):
 
     height = image.shape[0]
 
-    y_padding = abs(y2 - y1) * 2
+    y_padding = abs(y2 - y1) * 3
 
     crop_y1 = max(0, y1 - y_padding)
     crop_y2 = min(height, y2 + y_padding)
