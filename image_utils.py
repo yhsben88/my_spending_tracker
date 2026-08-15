@@ -1,5 +1,11 @@
+"""
+image_utils.py
+Authored by: Hiu Sum Yuen
+"""
+
 import cv2
 from pathlib import Path
+
 
 def load_image(path: str): 
     '''
@@ -9,6 +15,23 @@ def load_image(path: str):
     if image is None:
         raise FileNotFoundError(f"Could not find {image}")
     return image
+
+def save_image_to(source_path: Path, save_folder: str,image):
+    try:
+        filename = source_path.name
+        save_folder = Path(save_folder)
+        save_folder.mkdir(parents=True, exist_ok=True)
+
+        save_path = save_folder / filename
+
+        success = cv2.imwrite(save_path, image)
+        if not success:
+            raise IOError(f"Could not save image to {save_path}")
+
+    except cv2.error as e:
+        raise RuntimeError("Failed to preprocess image") from e
+    
+    return save_path
 
 
 def preprocess(image, path: Path) :
@@ -37,15 +60,11 @@ def preprocess(image, path: Path) :
             255,
             cv2.THRESH_BINARY + cv2.THRESH_OTSU # otsu method separates foreground from background.
         )
-        filename = path.name
-        save_processed_image_path = "./ignorable/training-data/" + filename
-        success = cv2.imwrite(save_processed_image_path, threshold)
-        if not success:
-            raise IOError(f"Could not save image to {save_processed_image_path}")
+
+        # save threshold image
+        save_image_to(path, "./ignorable/training-data/", threshold)
         
     except cv2.error as e:
         raise RuntimeError("Failed to preprocess image") from e
 
     return threshold
-
-
