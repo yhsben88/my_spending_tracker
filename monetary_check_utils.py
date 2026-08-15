@@ -14,3 +14,21 @@ def extract_money(text):
         return match.group(0)
 
     return None
+
+def normalize_keyword(text):
+    replacements = {
+        "0": "o",
+        "1": "l",
+        "|": "l",
+        "]": "l",
+        "[": "l",
+        ")": "l",
+        "(": "l",
+    }
+
+    text = text.lower()
+
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    return text

@@ -6,6 +6,7 @@ Authored by: Hiu Sum Yuen
 import cv2
 import numpy as np
 from monetary_check_utils import extract_money
+from monetary_check_utils import normalize_keyword
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -18,11 +19,12 @@ def find_word_total(reader_list: list):
         "total due": 5,
         "total": 4,
         "amount": 3,
-        "due": 2
+        "due": 2,
     }
 
     for bbox, text, confidence in reader_list:
         text_lower = text.lower().strip(":;")
+        text_lower = normalize_keyword(text_lower)
 
         score = -1
 
@@ -33,7 +35,7 @@ def find_word_total(reader_list: list):
         if score >= best_score:
             best_score = score
             total_bbox = bbox
-            total_text = text
+            total_text = text_lower
             best_confidence = confidence
     if total_bbox is None:
         raise ValueError("Cannot find any relevent words for Total.")
@@ -64,7 +66,9 @@ Scoring:
     6: candidate sits below, near the center of reference box, shifted to the left
     7: candidate sits below, near the center of reference box,shifted to the right
     10: candidate sits to the right, near the center of reference box, candidate may be bigger | positioned higher than reference box
-    13: candidate sits to the right, near the center of reference box, shifted below the reference box
+    15: candidate is part of the reference bbox
+    16: candidate is exclusively to the right of reference box and sitting vertically higher than reference box
+    17: candidate sits to the right, near the center of reference box, shifted below the reference box
 '''
 def find_relevent_bbox(ref_bbox, reader_list) :
     ref_x1, ref_y1, ref_x2, ref_y2 = bbox_bounds(ref_bbox)
@@ -75,17 +79,22 @@ def find_relevent_bbox(ref_bbox, reader_list) :
     top_bbox = None
 
     for bbox, text, confidence in reader_list:
-        # Reference bbox itself may contain the value
-        if point_is_inside_bbox(ref_x_center, ref_y_center, bbox):
-            if (t := extract_money(text)) is not None:
-                return 20, bbox, t, confidence
-            
         x1, y1, x2, y2 = bbox_bounds(bbox)
         score = -1
 
+        # Reference bbox itself may contain the value
+        if point_is_inside_bbox(ref_x_center, ref_y_center, bbox):
+            if (t := extract_money(text)) is not None:
+                top_score = 15
+                top_text = t
+                top_confidence = confidence
+                top_bbox = bbox
+                pass
+            
         # Candidate is exclusively to the right of reference bbox
         if x1 >= ref_x2 and y1 <= ref_y_center <= y2:
             score += 11
+
 
         # Candidate exclusively vertically under reference bbox
         if ref_y2 <= y1 and x1 <= ref_x_center <= x2:
@@ -103,7 +112,7 @@ def find_relevent_bbox(ref_bbox, reader_list) :
 
         # Prefer candidates with numeric-looking text
         if any(char.isdigit() for char in text):
-            score += 4
+            score += 6
 
         if score > top_score:
             top_score = score
@@ -148,7 +157,7 @@ def visualize_receipt(
     value_bbox,
     value_text = None,
     debug=False,
-    show_text = True
+    show_text = False # show even more information that information overlaps
 ):
     output = image.copy()
 

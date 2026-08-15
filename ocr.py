@@ -16,14 +16,15 @@ from bbox_utils import transform_bbox_for_crop_and_scale
 
 from pathlib import Path
 
-current_image = 1000
+starting_image = 42
+current_image = 1000 + starting_image
 poorly_scanned = []
 DEV_MODE = True
 
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[:10]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+2]:
     try:
 
         receipt = load_image(image_path)
@@ -69,20 +70,33 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[:10]:
                 total_word,
                 value_bbox,
                 value_text,
-                debug=True
+                debug=True,
+                show_text= False,
             )
             save_image_to(image_path, "./ignorable/processed-images/dev/full", debug_image)
 
+            user_image_threshold = visualize_receipt(
+                preprocessed_receipt,
+                receipt_data,
+                total_word_bbox,
+                total_word,
+                value_bbox,
+                value_text,
+                debug=False,
+                show_text= False,
+            )
+            save_image_to(image_path, "./ignorable/processed-images/dev/threshold", user_image_threshold)
+
             debug_image_cropped = visualize_receipt(
-                            total_region,
-                            total_region_data,
-                            zoomed_total_bbox,
-                            total_word,
-                            value_bbox,
-                            value_text,
-                            debug=True,
-                            show_text= False
-                        )
+                total_region,
+                total_region_data,
+                zoomed_total_bbox,
+                total_word,
+                value_bbox,
+                value_text,
+                debug=True,
+                show_text= False,
+            )
             save_image_to(image_path, "./ignorable/processed-images/dev/cropped", debug_image_cropped)
             
 
