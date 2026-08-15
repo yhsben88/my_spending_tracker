@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from monetary_check_utils import extract_money
 from monetary_check_utils import normalize_keyword
+from fuzzy_search import fuzzy_search
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -26,17 +27,24 @@ def find_word_total(reader_list: list):
         text_lower = text.lower().strip(":;")
         text_lower = normalize_keyword(text_lower)
 
-        score = -1
+        score = -1 # if final score is -1, the algorithm didn't get any text that match the dictionary.
 
         for keyword, keyword_score in keyword_scores.items():
-            if keyword in text_lower:
-                score = max(score, keyword_score)
+            if " " in keyword:
+                if keyword in text_lower:
+                    score = max(score, keyword_score)
+            else:
+                if keyword in text_lower.split():
+                    score = max(score, keyword_score)
 
         if score >= best_score:
             best_score = score
             total_bbox = bbox
             total_text = text_lower
             best_confidence = confidence
+    if total_bbox is None:
+        total_bbox, total_text, best_confidence = fuzzy_search(reader_list, keyword_scores)
+    
     if total_bbox is None:
         raise ValueError("Cannot find any relevent words for Total.")
     return total_bbox, total_text, best_confidence
@@ -89,22 +97,24 @@ def find_relevent_bbox(ref_bbox, reader_list) :
                 top_text = t
                 top_confidence = confidence
                 top_bbox = bbox
-                pass
+                continue
             
         # Candidate is exclusively to the right of reference bbox
-        if x1 >= ref_x2 and y1 <= ref_y_center <= y2:
-            score += 11
-
+        if x1 >= ref_x2:
+            if y1 <= ref_y_center <= y2:
+                score += 11
+            elif ref_y1 < y2:
+                score += 10
 
         # Candidate exclusively vertically under reference bbox
         if ref_y2 <= y1 and x1 <= ref_x_center <= x2:
             score += 6
 
         # Candidate remotely overlaps vertically or horizontally under reference bbox, extra points for relevence
-        if ref_y1 <= y1 <= ref_y2 or ref_x1 <= x1 <= ref_x2:
+        if ref_y1 <= y1 <= ref_y2 or (ref_x1 <= x1 <= ref_x2 and ref_y1 <= y2):
             score += 3 
         # Prioritizing relevence to the right than to the left
-        elif ref_x1 < x2 < ref_x2:
+        elif ref_x1 < x2 < ref_x2 and ref_y2 <= y2:
             score += 2
         # if Candidate has no overlap and is at the bottom right of reference
         elif y1 >= ref_y2 and x1 >= ref_x2: 

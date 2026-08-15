@@ -16,7 +16,7 @@ from bbox_utils import transform_bbox_for_crop_and_scale
 
 from pathlib import Path
 
-starting_image = 42
+starting_image = 0
 current_image = 1000 + starting_image
 poorly_scanned = []
 DEV_MODE = True
@@ -24,7 +24,7 @@ DEV_MODE = True
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+2]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+199]:
     try:
 
         receipt = load_image(image_path)
@@ -99,29 +99,6 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:startin
             )
             save_image_to(image_path, "./ignorable/processed-images/dev/cropped", debug_image_cropped)
             
-
-        user_image = visualize_receipt(
-            receipt,
-            receipt_data,
-            total_word_bbox,
-            total_word,
-            value_bbox,
-            value_text,
-            debug=False,
-            show_text= False
-        )
-        save_image_to(image_path, "./ignorable/processed-images/user/normal", user_image)
-
-        user_image_threshold = visualize_receipt(
-                    preprocessed_receipt,
-                    receipt_data,
-                    total_word_bbox,
-                    total_word,
-                    value_bbox,
-                    value_text,
-                    debug=False
-                )
-        save_image_to(image_path, "./ignorable/processed-images/user/threshold", user_image_threshold)
 
     except ValueError as e:
         # Specifically catches cases where "total" couldn't be found
