@@ -9,7 +9,8 @@ import numpy as np
 def find_word_total(reader_list: list): 
     total_bbox = None
     total_text = None
-    best_score = -1
+    best_score = 0
+    best_confidence = 0
 
     keyword_scores = {
         "amount due": 5,
@@ -22,7 +23,7 @@ def find_word_total(reader_list: list):
     for bbox, text, confidence in reader_list:
         text_lower = text.lower().strip(":;")
 
-        score = 0
+        score = -1
 
         for keyword, keyword_score in keyword_scores.items():
             if keyword in text_lower:
@@ -32,11 +33,10 @@ def find_word_total(reader_list: list):
             best_score = score
             total_bbox = bbox
             total_text = text
-
+            best_confidence = confidence
     if total_bbox is None:
         raise ValueError("Cannot find any relevant words for Total.")
-
-    return total_bbox, total_text, confidence
+    return total_bbox, total_text, best_confidence
 
 def bbox_bounds(bbox):
     xs = [p[0] for p in bbox]
