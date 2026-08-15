@@ -20,7 +20,7 @@ DEV_MODE = True
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[:30]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[:10]:
     try:
 
         receipt = load_image(image_path)
@@ -55,10 +55,21 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[:30]:
             total_word,
             value_bbox,
             value_text,
-            debug=False
+            debug=False,
+            show_text= False
         )
+        save_image_to(image_path, "./ignorable/processed-images/user/normal", user_image)
 
-        save_image_to(image_path, "./ignorable/processed-images/user", user_image)
+        user_image_threshold = visualize_receipt(
+                    preprocessed_receipt,
+                    receipt_data,
+                    total_word_bbox,
+                    total_word,
+                    value_bbox,
+                    value_text,
+                    debug=False
+                )
+        save_image_to(image_path, "./ignorable/processed-images/user/threshold", user_image_threshold)
 
     except ValueError as e:
         # Specifically catches cases where "total" couldn't be found

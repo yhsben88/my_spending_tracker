@@ -132,8 +132,9 @@ def visualize_receipt(
     reference_bbox,
     reference_text,
     value_bbox,
-    value_text,
-    debug=False
+    value_text = None,
+    debug=False,
+    show_text = True
 ):
     output = image.copy()
 
@@ -144,17 +145,27 @@ def visualize_receipt(
                 bbox,
                 f"{text} ({confidence:.2f})"
             )
+    if show_text == True:
+        draw_bbox(
+            output,
+            reference_bbox,
+            f"REFERENCE: {reference_text}"
+        )
 
-    draw_bbox(
-        output,
-        reference_bbox,
-        f"REFERENCE: {reference_text}"
-    )
+        draw_bbox(
+            output,
+            value_bbox,
+            f"VALUE: {value_text}"
+        )
+    else:
+        draw_bbox(
+            output,
+            reference_bbox
+        )
 
-    draw_bbox(
-        output,
-        value_bbox,
-        f"VALUE: {value_text}"
-    )
+        draw_bbox(
+            output,
+            value_bbox
+        )
 
     return output
