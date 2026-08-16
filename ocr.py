@@ -9,20 +9,23 @@ from find_word_total import find_word_total
 from find_relevent_bbox import find_relevent_bbox
 from visualize_receipt import visualize_receipt
 from crop_image import crop_total_region , transform_bbox_for_crop_and_scale
-
-
-
+from monetary_check_utils import is_money
+from reconstruct_money import reconstruct_money
 from pathlib import Path
 
-starting_image = 154
+TESTING = True
+DEV_MODE = True
+
+
+starting_image = 150
 current_image = 1000 + starting_image
 poorly_scanned = []
-DEV_MODE = True
+
 
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+1]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+15]:
     try:
 
         receipt = load_image(image_path)
@@ -55,35 +58,43 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:startin
 
         value_score, value_bbox, value_text, value_confidence = find_relevent_bbox(
             zoomed_total_bbox,
+            total_word,
             total_region_data
         )
 
-        print(f"{current_image}\n score: {value_score}\n Anchor word: {total_word}\nvalue: {value_text}\n confidence: {value_confidence}\n")
+        if not is_money(value_text.replace(" ", "")):
+            value_bbox, value_text, value_confidence = reconstruct_money(value_bbox, value_text, total_region_data)
+            print(f"\n{current_image} is Flagged for needing reconstruction")
+            
+        print(f"{current_image}\n score: {value_score}\n Anchor word: {total_word}\n value: {value_text}\n confidence: {value_confidence}\n")
+
 
         if DEV_MODE :
-            debug_image = visualize_receipt(
-                receipt,
-                receipt_data,
-                total_word_bbox,
-                total_word,
-                value_bbox,
-                value_text,
-                debug=True,
-                show_text= False,
-            )
-            save_image_to(image_path, "./ignorable/processed-images/dev/full", debug_image)
+            NEEDED = False
+            if NEEDED:
+                debug_image = visualize_receipt(
+                    receipt,
+                    receipt_data,
+                    total_word_bbox,
+                    total_word,
+                    value_bbox,
+                    value_text,
+                    debug=True,
+                    show_text= False,
+                )
+                save_image_to(image_path, "./ignorable/processed-images/dev/full", debug_image)
 
-            user_image_threshold = visualize_receipt(
-                preprocessed_receipt,
-                receipt_data,
-                total_word_bbox,
-                total_word,
-                value_bbox,
-                value_text,
-                debug=False,
-                show_text= False,
-            )
-            save_image_to(image_path, "./ignorable/processed-images/dev/threshold", user_image_threshold)
+                user_image_threshold = visualize_receipt(
+                    preprocessed_receipt,
+                    receipt_data,
+                    total_word_bbox,
+                    total_word,
+                    value_bbox,
+                    value_text,
+                    debug=False,
+                    show_text= False,
+                )
+                save_image_to(image_path, "./ignorable/processed-images/dev/threshold", user_image_threshold)
 
             debug_image_cropped = visualize_receipt(
                 total_region,
@@ -96,6 +107,18 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:startin
                 show_text= False,
             )
             save_image_to(image_path, "./ignorable/processed-images/dev/cropped", debug_image_cropped)
+
+            debug_image_cropped = visualize_receipt(
+                total_region,
+                total_region_data,
+                zoomed_total_bbox,
+                total_word,
+                value_bbox,
+                value_text,
+                debug=False,
+                show_text= False,
+            )
+            save_image_to(image_path, "./ignorable/processed-images/user/cropped", debug_image_cropped)
             
 
     except ValueError as e:
