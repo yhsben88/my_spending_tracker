@@ -5,11 +5,6 @@ Authored by: Hiu Sum Yuen
 
 import cv2
 import numpy as np
-from monetary_check_utils import extract_money
-from monetary_check_utils import normalize_keyword
-from fuzzy_search import fuzzy_search
-from fuzzy_search import is_subtotal
-
 
 
 def bbox_bounds(bbox):
