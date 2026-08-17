@@ -13,7 +13,8 @@ def extract_money(text):
     match = re.search(pattern, text)
 
     if match:
-        print(f"\textract_money: {match}")
+        if DEV:
+            print(f"\textract_money: {match}")
         return match.group(0)
     if DEV:
         print(f"\textract_money: {text}")
@@ -24,8 +25,9 @@ def is_money(text):
         r'\$?\s*\d+(?:\s*[.,-]\s*\d{2})',
         text.strip()
     ) 
-    if result is not None:
-        print(f"\tis_money: {result}")
+    if DEV:
+        if result is not None:
+            print(f"\tis_money: {result}")
     return result is not None
 
 def normalize_keyword(text):

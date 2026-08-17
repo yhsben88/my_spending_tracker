@@ -11,7 +11,7 @@ from monetary_check_utils import is_money
 from monetary_check_utils import money_relative_to_keyword
 
 TESTING = False
-DEV = True
+DEV = False
 
 def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
     '''
@@ -38,14 +38,13 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
         x1, y1, x2, y2 = bbox_bounds(bbox)
         score = -1
 
-        HAS_MONEY = False
-        if DEV: 
-            if is_money(text):
-                score += 3
-                HAS_MONEY = True
-            elif extract_money(text):
-                score += 2
-                HAS_MONEY = True
+        HAS_MONEY = False 
+        if is_money(text):
+            score += 3
+            HAS_MONEY = True if DEV else False
+        elif extract_money(text):
+            score += 2
+            HAS_MONEY = True if DEV else False
 
 
         # Reference bbox itself may contain the value
