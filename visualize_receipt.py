@@ -8,10 +8,10 @@ from bbox_utils import draw_bbox
 def visualize_receipt(
     image,
     receipt_data,
-    reference_bbox,
-    reference_text,
-    value_bbox,
-    value_text = None,
+    reference_bbox = None,
+    reference_text = "",
+    value_bbox = None,
+    value_text = "",
     debug=False,
     show_text = False # show even more information that information overlaps
 ):
@@ -24,27 +24,30 @@ def visualize_receipt(
                 bbox,
                 f"{text} ({confidence:.2f})"
             )
-    if show_text == True:
-        draw_bbox(
-            output,
-            reference_bbox,
-            f"REFERENCE: {reference_text}"
-        )
+    if reference_bbox is not None:
+        if show_text:
+            draw_bbox(
+                output,
+                reference_bbox,
+                f"REFERENCE: {reference_text}"
+            )
+        else:
+            draw_bbox(
+                output,
+                reference_bbox
+            )
 
-        draw_bbox(
-            output,
-            value_bbox,
-            f"VALUE: {value_text}"
-        )
-    else:
-        draw_bbox(
-            output,
-            reference_bbox
-        )
-
-        draw_bbox(
-            output,
-            value_bbox
-        )
+    if value_bbox is not None:
+        if show_text:
+            draw_bbox(
+                output,
+                value_bbox,
+                f"VALUE: {value_text}"
+            )
+        else:
+            draw_bbox(
+                output,
+                value_bbox
+            )
 
     return output
