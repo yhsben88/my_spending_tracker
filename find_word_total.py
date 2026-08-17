@@ -5,8 +5,10 @@ Author: Hiu Sum Yuen
 
 from monetary_check_utils import normalize_keyword
 from fuzzy_search import fuzzy_search
-from fuzzy_search import is_subtotal
+from word_check_utils import has_word_total , has_word_sub
+from bbox_utils import get_bbox_center, bbox_bounds
 
+TESTING = True
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -22,15 +24,23 @@ def find_word_total(reader_list: list):
         "due": 2,
     }
 
+    subtotal_parts = find_subtotal_bboxes(reader_list)
+
     for bbox, text, confidence in reader_list:
         text_lower = text.lower().strip(":;")
         text_lower = normalize_keyword(text_lower)
 
-        score = -1 # if final score is -1, the algorithm didn't get any text that match the dictionary.
-
         # Any variation of subtotal, we'd rather perform fuzzy search than take take a subtotal of any variation.
-        if is_subtotal(text_lower):
+        if has_word_sub(text_lower):
             continue
+
+        if TESTING:
+            # If target text is total AND previous text is subtotal, allow target to score IF relationship is vertical, not horizontal
+            if has_word_total(text_lower):
+                if is_part_of_subtotal(bbox, subtotal_parts):
+                    continue
+
+        score = -1 # if final score is -1, the algorithm didn't get any text that match the dictionary.
 
         for keyword, keyword_score in keyword_scores.items():
             if " " in keyword:
@@ -51,3 +61,52 @@ def find_word_total(reader_list: list):
     if total_bbox is None:
         raise ValueError("Cannot find any relevent words for Total.")
     return total_bbox, total_text, best_confidence
+
+def find_subtotal_bboxes(reader_list):
+    """
+    Find OCR bounding boxes that appear to represent
+    the 'sub' portion of a horizontally separated 'sub total'.
+
+    Returns:
+        list of bounding boxes containing 'sub'
+    """
+    subtotal_parts = []
+
+    for bbox, text, confidence in reader_list:
+        text_lower = normalize_keyword(text.lower().strip(":;"))
+
+        if has_word_sub(text_lower):
+            subtotal_parts.append(bbox)
+
+    return subtotal_parts
+
+def is_part_of_subtotal(candidate_bbox, subtotal_parts):
+    """
+    Determine whether candidate_bbox is the 'total' portion
+    of a horizontally separated 'sub total'.
+    """
+
+    candidate_x1, candidate_y1, candidate_x2, candidate_y2 = \
+        bbox_bounds(candidate_bbox)
+
+    candidate_y_center = get_bbox_center(candidate_bbox)[1]
+
+    for sub_bbox in subtotal_parts:
+        sub_x1, sub_y1, sub_x2, sub_y2 = bbox_bounds(sub_bbox)
+
+        sub_y_center = get_bbox_center(sub_bbox)[1]
+
+        # Must be horizontally aligned
+        vertically_aligned = (
+            sub_y1 <= candidate_y_center <= sub_y2
+            or
+            candidate_y1 <= sub_y_center <= candidate_y2
+        )
+
+        # "total" should be to the right of "sub"
+        horizontally_after = sub_x1 < candidate_x1
+
+        if vertically_aligned and horizontally_after:
+            return True
+
+    return False
