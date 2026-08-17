@@ -6,12 +6,10 @@ Author: Hiu Sum Yuen
 from bbox_utils import bbox_bounds
 from bbox_utils import get_bbox_center
 from bbox_utils import point_is_inside_bbox
-from monetary_check_utils import extract_money
-from monetary_check_utils import is_money
-from monetary_check_utils import money_relative_to_keyword
+from monetary_check_utils import money_relative_to_keyword , looks_like_date, is_money , extract_money
 
 TESTING = False
-DEV = False
+DEV = True
 
 def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
     '''
@@ -29,22 +27,27 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
     '''
     ref_x1, ref_y1, ref_x2, ref_y2 = bbox_bounds(ref_bbox)
     ref_x_center, ref_y_center = get_bbox_center(ref_bbox)
-    top_score = 0
+    top_score = 1
     top_text = str
     top_confidence = 0
     top_bbox = None
 
     for bbox, text, confidence in reader_list:
         x1, y1, x2, y2 = bbox_bounds(bbox)
-        score = -1
+        score = 0
 
-        HAS_MONEY = False 
+        if looks_like_date(text):
+            continue
+
+        HAS_MONEY = True
         if is_money(text):
-            score += 3
-            HAS_MONEY = True if DEV else False
+            score += 6
+            if DEV: 
+                HAS_MONEY = True 
         elif extract_money(text):
-            score += 2
-            HAS_MONEY = True if DEV else False
+            score += 5 # specifically has to make the candidate worth more than position alone
+            if DEV:
+                HAS_MONEY = True if DEV else False
 
 
         # Reference bbox itself may contain the value
@@ -100,17 +103,17 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
         
         # Candidate overlaps and sits to the left of reference bbox
         elif ref_x1 < x2 < ref_x2 and ref_y2 <= y2:
-            score = 3
+            score += 3
             if HAS_MONEY:
                 print(f"\tIs overlapping below & slightly left")
         # if Candidate has no overlap 
         elif ref_x2 < x1 or x2 < ref_x1:
             if ref_y2 < y1:
-                score = 3
+                score += 3
                 if HAS_MONEY:
                     print(f"\t May be irrelavent, sits below reference")
             elif y2 < ref_y1:
-                score = 2
+                score += 2
                 if HAS_MONEY:
                     print(f"\t May be irrelavent, sits above the reference.")
 
@@ -119,10 +122,13 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
             if HAS_MONEY:
                 print(f"\tscore is {score}\n\n")
 
-        if score > top_score:
+        if score >= top_score:
             top_score = score
             top_text = text
             top_confidence = confidence
             top_bbox = bbox
+
+        if top_bbox is None:
+            raise ValueError(f"There is an issue with finding any monetary value box after finding a total anchor: {ref_text}")
                 
     return (top_score, top_bbox, top_text, top_confidence)

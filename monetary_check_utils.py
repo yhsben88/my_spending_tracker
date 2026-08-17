@@ -71,3 +71,9 @@ def money_relative_to_keyword(text, keyword):
         return "right"
 
     return "overlap"
+
+def looks_like_date(text):
+    return re.fullmatch(
+        r'[a-zA-Z0-9]{1,2}\s*/\s*[a-zA-Z0-9]{1,2}\s*/\s*[a-zA-Z0-9]{4}',
+        text.strip()
+    ) is not None
