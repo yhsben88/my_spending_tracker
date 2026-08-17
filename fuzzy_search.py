@@ -5,12 +5,10 @@ Author: Hiu Sum Yuen
 
 from Levenshtein import distance
 from monetary_check_utils import normalize_keyword
+from word_check_utils import has_word_subtotal
 
-def is_subtotal(text):
-    return "subtotal" in text.replace(" ", "")
 
 def fuzzy_search(reader_list:list, dic:dict):
-    # if best_distance stays at 2, then function will return None, None, 0
     best_distance = 2 
     best_bbox = None
     best_text = None
@@ -18,8 +16,12 @@ def fuzzy_search(reader_list:list, dic:dict):
 
     for bbox, text, confidence in reader_list:
         text_lower = normalize_keyword(text.lower().strip(":;"))
-        if is_subtotal(text_lower):
-            continue
+        if has_word_subtotal(text_lower) and 2 <= best_distance:
+            # if subtotal exists, we will not completely disregard it, but it holds less priority than if any keyword matching text can be formed.
+            best_distance = 2 
+            best_bbox = bbox
+            best_text = text
+            best_confidence = confidence
 
         for keyword, keyword_score in dic.items():
 
