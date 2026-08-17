@@ -51,3 +51,18 @@ def draw_bbox(image, bbox, label=None):
 
     return image
 
+def union_bbox(left_bbox, right_bbox):
+    left_x1, left_y1, left_x2, left_y2 = bbox_bounds(left_bbox)
+    right_x1, right_y1, right_x2, right_y2 = bbox_bounds(right_bbox)
+
+    x1 = min(left_x1, right_x1)
+    y1 = min(left_y1, right_y1)
+    x2 = max(left_x2, right_x2)
+    y2 = max(left_y2, right_y2)
+
+    return [
+        [x1, y1],
+        [x2, y1],
+        [x2, y2],
+        [x1, y2]
+    ]

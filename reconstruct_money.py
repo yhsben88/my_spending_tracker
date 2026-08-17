@@ -2,9 +2,8 @@
 reconstruct_money.py
 Author: Hiu Sum Yuen
 '''
-import re
-from bbox_utils import bbox_bounds
-from bbox_utils import get_bbox_center
+import re 
+from bbox_utils import bbox_bounds, get_bbox_center , union_bbox
 from monetary_check_utils import is_money , extract_money
 
 TESTING = False
@@ -25,7 +24,8 @@ def reconstruct_money(candidate_bbox, candidate_text, reader_list):
         )
 
         if right is None:
-            return None, None, None
+            print("reconstruct_money() is called and value candidate has no right-of bbox to work with.")
+            return candidate_bbox, candidate_text, None
 
         right_bbox, right_text, right_confidence = right
 
@@ -35,7 +35,8 @@ def reconstruct_money(candidate_bbox, candidate_text, reader_list):
         )
 
         if combined is not None:
-            return right_bbox, combined, right_confidence
+            combined_bbox = union_bbox(current_bbox, right_bbox)
+            return combined_bbox, combined, right_confidence
 
         current_bbox = right_bbox
         current_text = right_text

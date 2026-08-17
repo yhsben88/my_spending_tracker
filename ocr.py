@@ -13,11 +13,11 @@ from monetary_check_utils import is_money
 from reconstruct_money import reconstruct_money
 from pathlib import Path
 
-TESTING = True
+TESTING = False
 DEV_MODE = True
 
 
-starting_image = 150
+starting_image = 154
 current_image = 1000 + starting_image
 poorly_scanned = []
 
@@ -25,7 +25,7 @@ poorly_scanned = []
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+15]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+1]:
     try:
 
         receipt = load_image(image_path)
@@ -61,16 +61,27 @@ for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:startin
             total_word,
             total_region_data
         )
+        if value_bbox is None:
+            raise ValueError(
+                f"Could not locate a monetary value near '{total_word}'."
+            )
 
         if not is_money(value_text.replace(" ", "")):
+            if DEV_MODE:
+                print(f"Running reconstruct_money with value_text: {value_text}")
             value_bbox, value_text, value_confidence = reconstruct_money(value_bbox, value_text, total_region_data)
+            if value_text is None:
+                raise ValueError(
+                    f"Found a candidate near '{total_word}', "
+                    f"but could not reconstruct a monetary value."
+                )
             print(f"\n{current_image} is Flagged for needing reconstruction")
             
         print(f"{current_image}\n score: {value_score}\n Anchor word: {total_word}\n value: {value_text}\n confidence: {value_confidence}\n")
 
 
         if DEV_MODE :
-            NEEDED = False
+            NEEDED = True
             if NEEDED:
                 debug_image = visualize_receipt(
                     receipt,
