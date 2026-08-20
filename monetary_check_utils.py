@@ -14,10 +14,10 @@ def extract_money(text):
 
     if match:
         if DEV:
-            print(f"\textract_money: {match}")
+            print(f"\textract money: {match}")
         return match.group(0)
     if DEV:
-        print(f"\textract_money: {text}")
+        print(f"\textract text: {text}")
     return None
 
 def is_money(text):
@@ -27,7 +27,7 @@ def is_money(text):
     ) 
     if DEV:
         if result is not None:
-            print(f"\tis_money: {result}")
+            print(f"\tis money: {result}")
     return result is not None
 
 def normalize_keyword(text):

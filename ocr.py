@@ -17,7 +17,7 @@ TESTING = False
 DEV_MODE = True
 
 
-starting_image = 112
+starting_image = 126
 current_image = 1000 + starting_image
 poorly_scanned = []
 
@@ -25,7 +25,7 @@ poorly_scanned = []
 image_data_folder = Path("./ignorable/large-receipt-image-dataset-SRD")
 reader = easyocr.Reader(['en'])
 
-for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+15]:
+for image_path in sorted(image_data_folder.glob("*.jpg"))[starting_image:starting_image+1]:
     try:
 
         receipt = load_image(image_path)
@@ -150,3 +150,4 @@ if poorly_scanned:
         )
 else:
     print("All images were successfully processed!")
+    
