@@ -3,7 +3,7 @@ crop_image.py
 Author: Hiu Sum Yuen
 '''
 
-def crop_total_region(image, total_bbox):
+def crop_total_region(image, total_bbox, scale = 3):
     ys = [point[1] for point in total_bbox]
 
     y1 = min(ys)
@@ -11,7 +11,7 @@ def crop_total_region(image, total_bbox):
 
     height = image.shape[0]
 
-    y_padding = abs(y2 - y1) * 3
+    y_padding = abs(y2 - y1) * scale
 
     crop_y1 = max(0, y1 - y_padding)
     crop_y2 = min(height, y2 + y_padding)
