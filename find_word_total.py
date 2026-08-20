@@ -8,7 +8,7 @@ from fuzzy_search import fuzzy_search
 from word_check_utils import has_word_total , has_word_sub
 from bbox_utils import get_bbox_center, bbox_bounds
 
-TESTING = True
+TESTING = False
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -34,11 +34,10 @@ def find_word_total(reader_list: list):
         if has_word_sub(text_lower):
             continue
 
-        if TESTING:
-            # If target text is total AND previous text is subtotal, allow target to score IF relationship is vertical, not horizontal
-            if has_word_total(text_lower):
-                if is_part_of_subtotal(bbox, subtotal_parts):
-                    continue
+        # If target text is total AND previous text is subtotal, allow target to score IF relationship is vertical, not horizontal
+        if has_word_total(text_lower):
+            if is_part_of_subtotal(bbox, subtotal_parts):
+                continue
 
         score = -1 # if final score is -1, the algorithm didn't get any text that match the dictionary.
 
