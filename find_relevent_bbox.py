@@ -9,7 +9,7 @@ from bbox_utils import point_is_inside_bbox
 from monetary_check_utils import money_relative_to_keyword , looks_like_date, is_money , extract_money
 
 TESTING = False
-DEV = True
+DEV = False
 
 def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
     '''
@@ -39,7 +39,7 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
         if looks_like_date(text):
             continue
 
-        HAS_MONEY = True
+        HAS_MONEY = False
         if is_money(text):
             score += 6
             if DEV: 
@@ -128,7 +128,7 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
             top_confidence = confidence
             top_bbox = bbox
 
-        if top_bbox is None:
-            raise ValueError(f"There is an issue with finding any monetary value box after finding a total anchor: {ref_text}")
+    if top_bbox is None:
+        raise ValueError(f"\n\tFound total anchor: {ref_text}\n\tThere is an issue with finding any monetary value box.")
                 
     return (top_score, top_bbox, top_text, top_confidence)
