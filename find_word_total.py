@@ -9,6 +9,7 @@ from word_check_utils import has_word_total , has_word_sub
 from bbox_utils import get_bbox_center, bbox_bounds
 
 TESTING = False
+DEBUG = False
 
 def find_word_total(reader_list: list): 
     total_bbox = None
@@ -46,7 +47,7 @@ def find_word_total(reader_list: list):
                 if keyword in text_lower:
                     score = max(score, keyword_score)
             else:
-                if keyword in text_lower.split():
+                if keyword in text_lower:
                     score = max(score, keyword_score)
 
         if score >= best_score:
@@ -70,12 +71,16 @@ def find_subtotal_bboxes(reader_list):
         list of bounding boxes containing 'sub'
     """
     subtotal_parts = []
+    if DEBUG:
+        print(f"\tlist of subtotal: ")
 
     for bbox, text, confidence in reader_list:
         text_lower = normalize_keyword(text.lower().strip(":;"))
 
         if has_word_sub(text_lower):
             subtotal_parts.append(bbox)
+            if DEBUG:
+                    print(f"\t[{text}] ")
 
     return subtotal_parts
 
