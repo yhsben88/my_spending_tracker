@@ -83,9 +83,9 @@ def find_relevent_bbox(ref_bbox, ref_text, reader_list) :
             if y1 <= ref_y_center <= y2: # if region [1][2]
                 score += 16
                 if HAS_MONEY:
-                    print(f"\tIs exclusively right & vertically centered")
+                    print(f"\tIs exclusively right & vertically centered")           
             elif ref_y1 < y2 and y1 < ref_y2: # if region between [1][2] & [2][2]
-                score += 7
+                score += 9
                 if HAS_MONEY:
                     print(f"\tIs exclusively right & vertically close")
 
