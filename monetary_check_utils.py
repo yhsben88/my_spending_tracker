@@ -8,7 +8,7 @@ import re
 DEV = False
 
 def extract_money(text):
-    pattern = r'\$?\s*\d+(?:\s*[.,-]\s*\d{2})'
+    pattern = r'\$?\s*\d+(?:\s*[.,-]\s*\d{2}(?!\d))'
 
     match = re.search(pattern, text)
 
